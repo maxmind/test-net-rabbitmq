@@ -517,6 +517,7 @@ information:
        routing_key => 'nr_test_q',        # route the message took
        exchange => 'nr_test_x',           # exchange used
        delivery_tag => 1,                 # (inc'd every recv or get)
+       redelivered => $boolean            # if message is redelivered
        consumer_tag => '',                # Always blank currently
        props => $props,                   # hashref sent in
      }
@@ -537,6 +538,7 @@ sub recv {
 
     $message->{delivery_tag} = $self->_inc_delivery_tag;
     $message->{consumer_tag} = '';
+    $message->{redelivered}  = 0;
 
     return $message;
 }

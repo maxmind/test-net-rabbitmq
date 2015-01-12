@@ -21,6 +21,7 @@ $mq->consume(1, 'new-orders');
 
 my $msg = $mq->recv;
 cmp_ok($msg->{body}, 'eq', 'hello!', 'recv got the message');
+ok(exists $msg->{redelivered}, 'msg has redelivered key');
 
 $mq->publish(1, 'order.new', 'hello!', { exchange => 'order' });
 

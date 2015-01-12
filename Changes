@@ -1,6 +1,9 @@
 Revision history for Test-Net-RabbitMQ
 
 {{$NEXT}}
+    * Added the redelivered key to messages returned by recv(). This matches a
+      change in Net::AMQP::RabbitMQ 0.007002. (Dave Rolsky)
+
     * Calling queue_declare would wipe out the contents of the queue if it
       already existed. (Dave Rolsky)
 
