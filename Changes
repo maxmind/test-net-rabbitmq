@@ -6,6 +6,10 @@ Revision history for Test-Net-RabbitMQ
     * The consume() method now returns a consumer tag, either the one you pass
       or an auto-generated tag. (Dave Rolsky)
     * Implemented a cancel() method. (Dave Rolsky)
+    * Partially implemented exchange_delete() and queue_delete()
+      methods. These aren't very smart and will not throw errors when the real
+      RabbitMQ would, but the methods at least exist and delete any existing
+      mock queue or exchange. (Dave Rolsky)
 
     * Calling queue_declare would wipe out the contents of the queue if it
       already existed. (Dave Rolsky)

@@ -300,6 +300,22 @@ sub exchange_declare {
     $self->_set_exchange($exchange, 1);
 }
 
+=method exchange_delete($channel, $exchange, $options)
+
+Deletes an exchange of the specified name.
+
+=cut
+
+sub exchange_delete {
+    my ($self, $channel, $exchange, $options) = @_;
+
+    die "Not connected" unless $self->connected;
+
+    die "Unknown channel" unless $self->_channel_exists($channel);
+
+    $self->_remove_exchange($exchange);
+}
+
 =method tx_select($channel)
 
 Begins a transaction on the specified channel.  From this point forward all
@@ -459,6 +475,22 @@ sub queue_declare {
     die "Unknown channel: $channel" unless $self->_channel_exists($channel);
 
     $self->_set_queue($queue, []) unless $self->_queue_exists($queue);
+}
+
+=method queue_delete($channel, $queue, $options)
+
+Deletes a queue of the specified name.
+
+=cut
+
+sub queue_delete {
+    my ($self, $channel, $queue, $options) = @_;
+
+    die "Not connected" unless $self->connected;
+
+    die "Unknown channel" unless $self->_channel_exists($channel);
+
+    $self->_remove_queue($queue);
 }
 
 =method queue_unbind($channel, $queue, $exchange, $routing_key)

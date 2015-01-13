@@ -24,4 +24,7 @@ my $msg = $mq->get(1, 'bind-twice');
 ok($msg, 'got message after calling queue_declare');
 is($msg->{body}, 'message body', 'message body contains expected content');
 
+lives_ok { $mq->queue_delete(1, 'bind-twice') } 'queue_delete';
+lives_ok { $mq->exchange_delete(1, 'bind-twice') } 'ex';
+
 done_testing;
