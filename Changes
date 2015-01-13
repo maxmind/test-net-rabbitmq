@@ -10,6 +10,8 @@ Revision history for Test-Net-RabbitMQ
       methods. These aren't very smart and will not throw errors when the real
       RabbitMQ would, but the methods at least exist and delete any existing
       mock queue or exchange. (Dave Rolsky)
+    * Implement "passive => 1" option for queue_declare, primarily to make it
+      possible to get a queue's message count. (Dave Rolsky)
 
     * Calling queue_declare would wipe out the contents of the queue if it
       already existed. (Dave Rolsky)

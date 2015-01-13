@@ -467,6 +467,7 @@ Creates a queue of the specified name.
 
 =cut
 
+my $queue = 0;
 sub queue_declare {
     my ($self, $channel, $queue, $options) = @_;
 
@@ -474,7 +475,25 @@ sub queue_declare {
 
     die "Unknown channel: $channel" unless $self->_channel_exists($channel);
 
-    $self->_set_queue($queue, []) unless $self->_queue_exists($queue);
+    if ($options->{passive}) {
+        # Would rabbitmq die if $queue was undef or q{}?
+        return
+               unless defined $queue
+            && length $queue
+            && $self->_queue_exists($queue);
+    }
+    else {
+        $queue = 'queue-' . $queue++
+            unless defined $queue && length $queue;
+        $self->_set_queue($queue, []) unless $self->_queue_exists($queue);
+    }
+
+    return $queue unless wantarray;
+    return (
+        $queue,
+        scalar @{ $self->_get_queue($queue) },
+        $self->queue && $self->queue eq $queue ? 1 : 0,
+    );
 }
 
 =method queue_delete($channel, $queue, $options)
