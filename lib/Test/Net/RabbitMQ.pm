@@ -494,6 +494,10 @@ sub publish {
     my $self = shift;
     my $channel = shift;
 
+    die "Not connected" unless $self->connected;
+
+    die "Unknown channel: $channel" unless $self->_channel_exists($channel);
+
     my $messages = $self->_tx_messages->{ $channel };
     if ($messages) {
         push @$messages, [ @_ ];
@@ -505,10 +509,6 @@ sub publish {
 
 sub _publish {
     my ($self, $channel, $routing_key, $body, $options, $props) = @_;
-
-    die "Not connected" unless $self->connected;
-
-    die "Unknown channel: $channel" unless $self->_channel_exists($channel);
 
     my $exchange = $options->{exchange};
     unless($exchange) {
