@@ -135,7 +135,9 @@ has exchanges => (
 
 has queue => (
     is => 'rw',
-    isa => 'Str'
+    isa => 'Str',
+    predicate => '_has_queue',
+    clearer => '_clear_queue',
 );
 
 has queues => (
@@ -220,6 +222,7 @@ Sets the queue that will be popped when C<recv> is called.
 
 =cut
 
+my $ctag = 0;
 sub consume {
     my ($self, $channel, $queue, $options) = @_;
 
@@ -238,6 +241,33 @@ sub consume {
     die "no_ack=>0 is not supported at this time" if !$options->{no_ack};
 
     $self->queue($queue);
+
+    return exists $options->{consumer_tag}
+        ? $options->{consumer_tag}
+        : 'consumer-tag-' . $ctag++;
+}
+
+=method cancel($channel, $consumer_tag)
+
+Cancels the subscription for the given consumer tag. Calls to C<recv> after
+this will throw an error unless you call C<consume> again. This method always
+returns true if there is a subscription to cancel, false otherwise.
+
+=cut
+
+sub cancel {
+    my ($self, $channel, $consumer_tag) = @_;
+
+    die "Not connected" unless $self->connected;
+
+    die "You must provide a consumer tag"
+        unless defined $consumer_tag && length $consumer_tag;
+
+    return 0 unless $self->_has_queue;
+
+    $self->_clear_queue;
+
+    return 1;
 }
 
 =method disconnect
