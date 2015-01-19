@@ -3,6 +3,8 @@ use Moose;
 use warnings;
 use strict;
 
+our $VERSION = '0.12';
+
 # ABSTRACT: A mock RabbitMQ implementation for use when testing.
 
 =head1 SYNOPSIS
@@ -33,8 +35,8 @@ use strict;
 =head1 DESCRIPTION
 
 Test::Net::RabbitMQ is a terrible approximation of using the real thing, but
-hopefully will allow you to test systems that use L<Net::RabbitMQ> without
-having to use an actual RabbitMQ instance.
+hopefully will allow you to test systems that use L<Net::AMQP::RabbitMQ> or
+L<Net::RabbitMQ> without having to use an actual RabbitMQ instance.
 
 The general overview is that calls to C<publish> pushes a message into one
 or more queues (or none if there are no bindings) and calls to C<recv>
@@ -109,7 +111,7 @@ has channels => (
 
 =attr debug
 
-If set to true (which you can do at any time) then a message will be emmitted
+If set to true (which you can do at any time) then a message will be emitted
 to STDERR any time a message is added to a queue.
 
 =cut
