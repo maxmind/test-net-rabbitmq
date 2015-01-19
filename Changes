@@ -2,6 +2,8 @@ Revision history for Test-Net-RabbitMQ
 
 {{$NEXT}}
 
+0.12     2015-01-19
+
 * Added the redelivered key to messages returned by recv(). This matches a
   change in Net::AMQP::RabbitMQ 0.007002.
 * The consume() method now returns a consumer tag, either the one you pass or
