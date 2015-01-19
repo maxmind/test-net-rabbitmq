@@ -25,9 +25,9 @@ use strict;
     $mq->consume(1, 'new-orders');
 
     my $msg = $mq->recv;
-    
+
     # Or
-    
+
     my $msg = $mq->get(1, 'order.new', {});
 
 =head1 DESCRIPTION
@@ -44,7 +44,7 @@ pop them.
 
 =head1 CAVEATS
 
-This module has all the features I've needed to successfully test our 
+This module has all the features I've needed to successfully test our
 RabbitMQ-using application. Patches are welcome if I'm missing something you
 need! At the moment there are a number of shortcomings:
 
