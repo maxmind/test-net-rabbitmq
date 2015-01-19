@@ -135,7 +135,9 @@ has exchanges => (
 
 has queue => (
     is => 'rw',
-    isa => 'Str'
+    isa => 'Str',
+    predicate => '_has_queue',
+    clearer => '_clear_queue',
 );
 
 has queues => (
@@ -220,6 +222,7 @@ Sets the queue that will be popped when C<recv> is called.
 
 =cut
 
+my $ctag = 0;
 sub consume {
     my ($self, $channel, $queue, $options) = @_;
 
@@ -238,6 +241,33 @@ sub consume {
     die "no_ack=>0 is not supported at this time" if !$options->{no_ack};
 
     $self->queue($queue);
+
+    return exists $options->{consumer_tag}
+        ? $options->{consumer_tag}
+        : 'consumer-tag-' . $ctag++;
+}
+
+=method cancel($channel, $consumer_tag)
+
+Cancels the subscription for the given consumer tag. Calls to C<recv> after
+this will throw an error unless you call C<consume> again. This method always
+returns true if there is a subscription to cancel, false otherwise.
+
+=cut
+
+sub cancel {
+    my ($self, $channel, $consumer_tag) = @_;
+
+    die "Not connected" unless $self->connected;
+
+    die "You must provide a consumer tag"
+        unless defined $consumer_tag && length $consumer_tag;
+
+    return 0 unless $self->_has_queue;
+
+    $self->_clear_queue;
+
+    return 1;
 }
 
 =method disconnect
@@ -268,6 +298,22 @@ sub exchange_declare {
     die "Unknown channel" unless $self->_channel_exists($channel);
 
     $self->_set_exchange($exchange, 1);
+}
+
+=method exchange_delete($channel, $exchange, $options)
+
+Deletes an exchange of the specified name.
+
+=cut
+
+sub exchange_delete {
+    my ($self, $channel, $exchange, $options) = @_;
+
+    die "Not connected" unless $self->connected;
+
+    die "Unknown channel" unless $self->_channel_exists($channel);
+
+    $self->_remove_exchange($exchange);
 }
 
 =method tx_select($channel)
@@ -421,6 +467,7 @@ Creates a queue of the specified name.
 
 =cut
 
+my $queue = 0;
 sub queue_declare {
     my ($self, $channel, $queue, $options) = @_;
 
@@ -428,7 +475,41 @@ sub queue_declare {
 
     die "Unknown channel: $channel" unless $self->_channel_exists($channel);
 
-    $self->_set_queue($queue, []) unless $self->_queue_exists($queue);
+    if ($options->{passive}) {
+        # Would rabbitmq die if $queue was undef or q{}?
+        return
+               unless defined $queue
+            && length $queue
+            && $self->_queue_exists($queue);
+    }
+    else {
+        $queue = 'queue-' . $queue++
+            unless defined $queue && length $queue;
+        $self->_set_queue($queue, []) unless $self->_queue_exists($queue);
+    }
+
+    return $queue unless wantarray;
+    return (
+        $queue,
+        scalar @{ $self->_get_queue($queue) },
+        $self->queue && $self->queue eq $queue ? 1 : 0,
+    );
+}
+
+=method queue_delete($channel, $queue, $options)
+
+Deletes a queue of the specified name.
+
+=cut
+
+sub queue_delete {
+    my ($self, $channel, $queue, $options) = @_;
+
+    die "Not connected" unless $self->connected;
+
+    die "Unknown channel" unless $self->_channel_exists($channel);
+
+    $self->_remove_queue($queue);
 }
 
 =method queue_unbind($channel, $queue, $exchange, $routing_key)
@@ -464,6 +545,10 @@ sub publish {
     my $self = shift;
     my $channel = shift;
 
+    die "Not connected" unless $self->connected;
+
+    die "Unknown channel: $channel" unless $self->_channel_exists($channel);
+
     my $messages = $self->_tx_messages->{ $channel };
     if ($messages) {
         push @$messages, [ @_ ];
@@ -475,10 +560,6 @@ sub publish {
 
 sub _publish {
     my ($self, $channel, $routing_key, $body, $options, $props) = @_;
-
-    die "Not connected" unless $self->connected;
-
-    die "Unknown channel: $channel" unless $self->_channel_exists($channel);
 
     my $exchange = $options->{exchange};
     unless($exchange) {
@@ -517,6 +598,7 @@ information:
        routing_key => 'nr_test_q',        # route the message took
        exchange => 'nr_test_x',           # exchange used
        delivery_tag => 1,                 # (inc'd every recv or get)
+       redelivered => $boolean            # if message is redelivered
        consumer_tag => '',                # Always blank currently
        props => $props,                   # hashref sent in
      }
@@ -537,6 +619,7 @@ sub recv {
 
     $message->{delivery_tag} = $self->_inc_delivery_tag;
     $message->{consumer_tag} = '';
+    $message->{redelivered}  = 0;
 
     return $message;
 }
