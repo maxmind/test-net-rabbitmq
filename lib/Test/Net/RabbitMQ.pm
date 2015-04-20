@@ -3,6 +3,8 @@ use Moose;
 use warnings;
 use strict;
 
+use Math::UInt64 qw( uint64 );
+
 our $VERSION = '0.13';
 
 # ABSTRACT: A mock RabbitMQ implementation for use when testing.
@@ -156,16 +158,22 @@ has queues => (
 );
 
 has delivery_tag => (
-    traits  => [ qw(Counter) ],
-    is      => 'ro',
-    isa     => 'Num',
-    default => 0,
-    handles => {
-        _inc_delivery_tag   => 'inc',
-        _dec_delivery_tag   => 'dec',
-        _reset_delivery_tag => 'reset',
-    },
+    is      => 'rw',
+    isa     => 'Math::UInt64',
+    default => sub { uint64(0) },
+    clearer => '_reset_delivery_tag',
+    writer  => '_set_delivery_tag',
 );
+
+sub _inc_delivery_tag {
+    my $self = shift;
+    $self->_set_delivery_tag( $self->delivery_tag + 1 );
+}
+
+sub _dec_delivery_tag {
+    my $self = shift;
+    $self->_set_delivery_tag( $self->delivery_tag - 1 );
+}
 
 has _tx_messages => (
     is      => 'ro',
@@ -393,7 +401,7 @@ information:
        body => 'Magic Transient Payload', # the reconstructed body
        routing_key => 'nr_test_q',        # route the message took
        exchange => 'nr_test_x',           # exchange used
-       delivery_tag => 1,                 # (inc'd every recv or get)
+       delivery_tag => uint64(1),         # (inc'd every recv or get)
        redelivered => 0,                  # always 0
        message_count => 0,                # always 0
      }
@@ -599,7 +607,7 @@ information:
        body => 'Magic Transient Payload', # the reconstructed body
        routing_key => 'nr_test_q',        # route the message took
        exchange => 'nr_test_x',           # exchange used
-       delivery_tag => 1,                 # (inc'd every recv or get)
+       delivery_tag => uint64(1),         # (inc'd every recv or get)
        redelivered => $boolean            # if message is redelivered
        consumer_tag => '',                # Always blank currently
        props => $props,                   # hashref sent in
