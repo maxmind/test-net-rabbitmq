@@ -1,6 +1,9 @@
-Revision history for Test-Net-RabbitMQ
-
 {{$NEXT}}
+
+* Make all delivery tags a Math::UInt64 object to match the latest
+  Net::AMQ::RabbitMQ changes (as of version 0.100000 of that library). (Ran
+  Eilam)
+
 
 0.12     2015-01-19
 
