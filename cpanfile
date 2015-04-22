@@ -1,3 +1,4 @@
+requires "Math::Int64" => "0.34";
 requires "Moose" => "0";
 requires "strict" => "0";
 requires "warnings" => "0";
