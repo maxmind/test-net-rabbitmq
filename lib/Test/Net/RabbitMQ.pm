@@ -5,7 +5,7 @@ use strict;
 
 use Math::Int64 0.34 qw( uint64 );
 
-our $VERSION = '0.13';
+our $VERSION = '0.14';
 
 # ABSTRACT: A mock RabbitMQ implementation for use when testing.
 
