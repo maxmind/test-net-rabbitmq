@@ -3,7 +3,7 @@ use Moose;
 use warnings;
 use strict;
 
-use Math::UInt64 qw( uint64 );
+use Math::Int64 0.34 qw( uint64 );
 
 our $VERSION = '0.13';
 
